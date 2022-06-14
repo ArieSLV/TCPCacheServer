@@ -7,7 +7,7 @@ namespace TCPCacheServer
     public class CacheController
     {
         private OrderedDictionary dictionary;
-        private const long cacheLimit = 128;
+        private const long cacheLimit = 128 * 1024 * 1024;
         private long currentCacheSize;        
           
         public CacheController()
