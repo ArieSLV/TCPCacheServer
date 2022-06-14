@@ -5,6 +5,7 @@ namespace TCPCacheServer
 
     public class Command : IDisposable
     {
+        const string newLineIdentifier = "\\r\\n";
         private readonly CommandType commandType;
         private readonly string key;
         private string value;
@@ -23,7 +24,7 @@ namespace TCPCacheServer
         public Command(string stringCommand)
         {
             var words = stringCommand
-                .Split("\r\n")[0]
+                .Split(newLineIdentifier)[0]
                 .Split(' ');
 
             switch (words[0].ToLower())
