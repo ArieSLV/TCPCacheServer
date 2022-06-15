@@ -20,7 +20,7 @@ namespace TCPCacheServer
 
             _isRunning = true;
 
-            Console.WriteLine("Server listening at " + port + " port");
+            Console.WriteLine($"Server listening at {port} port");
 
             cacheController = new CacheController();
 
@@ -55,12 +55,13 @@ namespace TCPCacheServer
 #nullable disable
                 try
                 {
-                    Command command = new(streamData);
+                    //Wrapping a string into the command to make it easier to work with her
+                    var command = new Command(streamData);
 
                     switch (command.CommandType)
                     {
                         case CommandType.Set:
-                            command.Value = sReader.ReadLine();
+                            command.Value = sReader.ReadLine();                //Catching the second line of set command
 
                             cacheController.Add(command.Key, command.Value);
 

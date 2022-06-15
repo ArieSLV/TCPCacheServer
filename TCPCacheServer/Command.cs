@@ -3,7 +3,7 @@ namespace TCPCacheServer
 { 
     public enum CommandType { Set, Get };
 
-    public class Command : IDisposable
+    public class Command
     {
         const string newLineIdentifier = "\\r\\n";
         private readonly CommandType commandType;
@@ -24,7 +24,7 @@ namespace TCPCacheServer
         public Command(string stringCommand)
         {
             var words = stringCommand
-                .Split(newLineIdentifier)[0]
+                .Split(newLineIdentifier)[0]         
                 .Split(' ');
 
             switch (words[0].ToLower())
@@ -32,10 +32,9 @@ namespace TCPCacheServer
                 case "set":
                     commandType = CommandType.Set;
 
-                    if (words.Length == 3)
+                    if (words.Length == 3)           //waiting here only "set", cache_key and size_in_bytes
                     {
-                        key = words[1];
-                        value = words[2];
+                        key = words[1];              //value waiting in the second line of command, which will be assigned later          
                     }
                     else throw new ArgumentException("Set command should contain key and value");
                     break;
@@ -46,7 +45,6 @@ namespace TCPCacheServer
                     if (words.Length == 2)
                     {
                         key = words[1];
-                        value = string.Empty;
                     }
                     else throw new ArgumentException("Get command should contain only key");
                     break;
@@ -55,11 +53,6 @@ namespace TCPCacheServer
                     throw new ArgumentException("Unknown command type");
             }
         }        
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-        }
     }
 }
 
