@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using TCPCacheServer.Builders;
 
 namespace TCPCacheServer
 {
@@ -12,6 +13,7 @@ namespace TCPCacheServer
         private readonly TcpListener _server;
         private readonly bool _isRunning;
         private readonly CacheController cacheController;
+        private StringParser stringParser;
 
         public TCPServer(IPAddress ipAddress, int port)
         {
@@ -53,40 +55,40 @@ namespace TCPCacheServer
 #nullable enable
                 string? streamData = sReader.ReadLine();
 #nullable disable
+
                 try
                 {
-                    //Wrapping a string into the command to make it easier to work with her
-                    var command = new Command(streamData);
+                    stringParser = new StringParser(streamData);
+                    var commandBuilder = stringParser.GetCommandBuilder();
 
-                    switch (command.CommandType)
+                    if (commandBuilder.GetType() == typeof(SetCommandBuilder))
                     {
-                        case CommandType.Set:
-                            command.Value = sReader.ReadLine();                //Catching the second line of set command
+                        commandBuilder.BuildCommandValue(sReader.ReadLine());
 
-                            cacheController.Add(command.Key, command.Value);
+                        var command = commandBuilder.BuildCommand();
 
-                            sWriter.WriteLine("OK");
+                        cacheController.Add(command.Key, command.Value);
+
+                        sWriter.WriteLine("OK");
+                        sWriter.Flush();
+
+                    }
+                    else if (commandBuilder.GetType() == typeof(GetCommandBuilder))
+                    {
+                        var command = commandBuilder.BuildCommand();
+                        var value = cacheController.Get(command.Key);
+
+                        if (value != null)
+                        {
+                            sWriter.WriteLine($"OK {Encoding.UTF8.GetByteCount(value)}");
+                            sWriter.WriteLine(value);
                             sWriter.Flush();
-                            break;
-                        case CommandType.Get:
-                            
-                            var value = cacheController.Get(command.Key);
-
-                            if (value != null)
-                            {
-                                sWriter.WriteLine($"OK {Encoding.UTF8.GetByteCount(value)}");
-                                sWriter.WriteLine(value);
-                                sWriter.Flush();
-                            }
-                            else
-                            {
-                                sWriter.WriteLine("MISSING");
-                                sWriter.Flush();
-                            }
-
-                            break;
-                        default:
-                            break;
+                        }
+                        else
+                        {
+                            sWriter.WriteLine("MISSING");
+                            sWriter.Flush();
+                        }
                     }
 
                 }
